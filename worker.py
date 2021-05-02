@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pika
 import time
-from tortoise_mq import tmq_basic_consume, tmq_log_error
+from tortoise_mq import TortoiseMQ 
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
@@ -11,6 +11,8 @@ channel.queue_declare('task_queue', durable=True)
 # the workers are initially plagued with bad memories
 # this can be fixed by giving them good work
 have_happy_memories = False
+
+tmq = TortoiseMQ()
 
 """
 this gets executed whenever a message is consumed.
@@ -42,12 +44,7 @@ def callback(ch, method, properties, body):
 	return  {'status': 'success', 'error_message': ''}
 
 
-tmq_basic_consume(channel=channel, callback=callback)
-
-"""
-channel.basic_consume(queue='task_queue',
-			on_message_callback=callback)
-"""
+tmq.tmq_basic_consume(channel=channel, callback=callback)
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()

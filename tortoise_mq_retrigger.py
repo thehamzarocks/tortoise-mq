@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 import pika
 import sys
-from tortoise_mq import tmq_retrigger
+from tortoise_mq import TortoiseMQ
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
-
 channel.queue_declare(queue='task_queue', durable=True)
 channel.basic_qos(prefetch_count=1)
 
@@ -16,8 +15,8 @@ back onto the queue
 """
 
 
-
-tmq_retrigger()
+tmq = TortoiseMQ()
+tmq.tmq_retrigger(channel)
 
 
 
