@@ -78,7 +78,6 @@ class TortoiseMQ:
 		# otherwise add a new entry to the logs
 		tmq_message['error_count'] = 1
 		insert_response = es.index(index='tmq-logs', body=tmq_message)
-		print(insert_response)
 		tmq_message['id'] = insert_response['_id']
 		es.update(index='tmq-logs', id=insert_response['_id'], body={"doc": tmq_message})
 		return
@@ -95,17 +94,13 @@ class TortoiseMQ:
 
 
 
-		
-
-
-
-	def tmq_retrigger(self, channel):
+	def tmq_retrigger(self, message, channel):
 		connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 		channel = connection.channel()
 
 		channel.queue_declare(queue='task_queue', durable=True)
 		channel.basic_qos(prefetch_count=1) 
-		res = es.search(index="tmq-logs", body={"query": {"bool": { "must": [{"match": {"errorMessage": "work crash!"}}, { "match": { "status": "error!" }}]}}})
+		res = es.search(index="tmq-logs", body={"query": {"bool": { "must": [{"match": {"errorMessage": message}}, { "match": { "status": "error!" }}]}}})
 		print(res)
 		[self.__publish_tmq_message(tmq_message['_source'], channel=channel) for tmq_message in res['hits']['hits']]
 		connection.close()
